@@ -1,8 +1,10 @@
 import gleam/list
 import gleeunit
 import gleeunit/should
-import simplifile
-import starcal.{Param, Property, parse_content_line, to_content_lines}
+import simplifile as sf
+import starcal.{
+  Param, Property, parse_content_line, serialize_properties, to_content_lines,
+}
 
 pub fn main() {
   gleeunit.main()
@@ -29,33 +31,42 @@ pub fn to_content_lines_test() {
 }
 
 pub fn parse_content_lines_test() {
-  let assert Ok(s) = simplifile.read("test/case1.ical")
+  let expected = [
+    Property("BEGIN", [], "VCALENDAR"),
+    Property("VERSION", [], "2.0"),
+    Property("PRODID", [], "-//ABC Corporation//NONSGML My Product//EN"),
+    Property("BEGIN", [], "VJOURNAL"),
+    Property("DTSTAMP", [], "19970324T120000Z"),
+    Property("UID", [], "uid5@example.com"),
+    Property("ORGANIZER", [], "mailto:jsmith@example.com"),
+    Property("STATUS", [], "DRAFT"),
+    Property("CLASS", [], "PUBLIC"),
+    Property("CATEGORIES", [], "Project Report,XYZ,Weekly Meeting"),
+    Property(
+      "DESCRIPTION",
+      [],
+      "Project xyz Review Meeting Minutes\\nAgenda\\n1. Review of project version 1.0 requirements.\\n2. Definition of project processes.\\n3. Review of project schedule.\\nParticipants: John Smith\\, Jane Doe\\, Jim Dandy\\n-It was decided that the requirements need to be signed off by product marketing.\\n-Project processes were accepted.\\n-Project schedule needs to account for scheduled holidays and employee vacation time. Check with HR for specific dates.\\n-New schedule will be distributed by Friday.\\n-Next weeks meeting is cancelled. No meeting until 3/23.",
+    ),
+    Property("END", [], "VJOURNAL"),
+    Property("END", [], "VCALENDAR"),
+  ]
+  let assert Ok(s) = sf.read("test/case1.ical")
   s
   |> to_content_lines()
   |> list.map(parse_content_line)
-  |> should.equal([
-    Ok(Property("BEGIN", [], "VCALENDAR")),
-    Ok(Property("VERSION", [], "2.0")),
-    Ok(Property("PRODID", [], "-//ABC Corporation//NONSGML My Product//EN")),
-    Ok(Property("BEGIN", [], "VJOURNAL")),
-    Ok(Property("DTSTAMP", [], "19970324T120000Z")),
-    Ok(Property("UID", [], "uid5@example.com")),
-    Ok(Property("ORGANIZER", [], "mailto:jsmith@example.com")),
-    Ok(Property("STATUS", [], "DRAFT")),
-    Ok(Property("CLASS", [], "PUBLIC")),
-    Ok(Property("CATEGORIES", [], "Project Report,XYZ,Weekly Meeting")),
-    Ok(Property(
-      "DESCRIPTION",
-      [],
-      "Project xyz Review Meeting Minutes\\nAgenda\\n1. Review of project version 1.0 requirements.\\n2. Definitionof project processes.\\n3. Review of project schedule.\\nParticipants: John Smith\\, Jane Doe\\, Jim Dandy\\n-It was decided that the requirements need to be signed off by product marketing.\\n-Project processes were accepted.\\n-Project schedule needs to account for scheduled holidays and employee vacation time. Check with HR for specific dates.\\n-New schedule will be distributed by Friday.\\n-Next weeks meeting is cancelled. No meeting until 3/23.",
-    )),
-    Ok(Property("END", [], "VJOURNAL")),
-    Ok(Property("END", [], "VCALENDAR")),
-  ])
+  |> list.zip(list.map(expected, Ok(_)))
+  |> list.each(fn(x) {
+    let #(a, b) = x
+    should.equal(a, b)
+  })
+
+  expected
+  |> serialize_properties
+  |> should.equal(s)
 }
 
 pub fn parse_content_lines_2_test() {
-  let assert Ok(s) = simplifile.read("test/case2.ical")
+  let assert Ok(s) = sf.read("test/case2.ical")
   s
   |> to_content_lines()
   |> list.map(parse_content_line)
@@ -93,7 +104,7 @@ pub fn parse_content_lines_2_test() {
 }
 
 pub fn parse_content_lines_3_test() {
-  let assert Ok(s) = simplifile.read("test/case3.ical")
+  let assert Ok(s) = sf.read("test/case3.ical")
   s
   |> to_content_lines()
   |> list.map(parse_content_line)
@@ -151,7 +162,7 @@ pub fn parse_content_lines_3_test() {
 }
 
 pub fn parse_content_lines_4_test() {
-  let assert Ok(s) = simplifile.read("test/case4.ical")
+  let assert Ok(s) = sf.read("test/case4.ical")
   s
   |> to_content_lines()
   |> list.map(parse_content_line)

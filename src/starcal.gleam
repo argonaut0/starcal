@@ -1,6 +1,6 @@
 import gleam/io
 import gleam/list
-import gleam/regex
+import gleam/regexp
 import gleam/string
 
 pub fn main() {
@@ -9,7 +9,7 @@ pub fn main() {
 
 /// https://datatracker.ietf.org/doc/html/rfc5545#section-3.1
 /// 75 octets including crlf
-//const max_line_length = 75
+const max_line_length = 75
 
 pub fn to_content_lines(input: String) {
   input
@@ -36,20 +36,6 @@ fn do_unfold_lines(acc: List(String), lines: List(String)) {
   }
 }
 
-//fn parse_lines(lines: List(String), acc: abc) {
-//  case lines {
-//    // If we can just process this
-//    [] -> Empty
-//    [l1] -> parse_line(l1, [])
-//    // If there's at least 2 lines we need to try to unfold them first
-//    [l1, l2, ..ls] ->
-//      case l2 {
-//        " " <> rest -> parse_lines([l1 <> rest, ..ls], acc)
-//        _ -> parse_lines([l2, ..ls], parse_line(l1, acc))
-//      }
-//  }
-//}
-
 // Param represents an iCal Property Parameter
 pub type Param {
   Param(name: String, values: List(String))
@@ -59,17 +45,53 @@ pub type Property {
   Property(name: String, params: List(Param), value: String)
 }
 
+pub fn serialize_properties(props: List(Property)) -> String {
+  props
+  |> list.map(generate_content_line)
+  |> list.map(fold_line)
+  |> list.flatten
+  |> list.intersperse("\r\n")
+  |> string.concat
+}
+
 pub fn generate_content_line(prop: Property) -> String {
   [
     prop.name,
-    ";",
     ..prop.params
     |> list.map(generate_param_string)
-    |> list.intersperse(";")
   ]
+  |> list.intersperse(";")
   |> string.concat
   |> string.append(":")
   |> string.append(prop.value)
+}
+
+fn fold_line(line: String) -> List(String) {
+  do_fold_line_1(line, [])
+  |> list.reverse
+}
+
+fn do_fold_line_1(line: String, folded: List(String)) -> List(String) {
+  case line {
+    "" -> folded
+    _ -> {
+      let fold = string.slice(line, 0, max_line_length)
+      do_fold_line(string.drop_start(line, max_line_length), [fold, ..folded])
+    }
+  }
+}
+
+fn do_fold_line(line: String, folded: List(String)) -> List(String) {
+  case line {
+    "" -> folded
+    _ -> {
+      let fold = string.slice(line, 0, max_line_length - 1)
+      do_fold_line(string.drop_start(line, max_line_length - 1), [
+        " " <> fold,
+        ..folded
+      ])
+    }
+  }
 }
 
 /// len(param.values) must be >= 1
@@ -81,7 +103,7 @@ fn generate_param_string(param: Param) -> String {
   string.append("\"", s)
 }
 
-// split_content_line takes a content line and returns the #(name, params, value)
+// parse_content_line takes a content line and returns the #(name, params, value)
 pub fn parse_content_line(line: String) -> Result(Property, Nil) {
   do_parse_content_line("", string.to_graphemes(line))
 }
@@ -205,11 +227,11 @@ fn parse_param_value_safe(
 }
 
 fn valid_name(t: String) {
-  let assert Ok(re) = regex.from_string("^[A-Z0-9]+$")
-  regex.check(re, t)
+  let assert Ok(re) = regexp.from_string("^[A-Z0-9]+$")
+  regexp.check(re, t)
 }
 
-pub fn index_off(s: String, g: String) {
+pub fn index_of(s: String, g: String) {
   do_index_of(s, g, 0)
 }
 
