@@ -13,8 +13,8 @@ SUMMARY:Submit Income Taxes
 BEGIN:VALARM
 ACTION:AUDIO
 TRIGGER:19980403T120000Z
-ATTACH;FMTTYPE=audio/basic:http://example.com/pub/audio-
- files/ssbanner.aud
+ATTACH;FMTTYPE=audio/basic:http://exam
+ ple.com/pub/audio-files/ssbanner.aud
 REPEAT:4
 DURATION:PT1H
 END:VALARM

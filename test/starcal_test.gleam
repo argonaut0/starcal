@@ -66,72 +66,73 @@ pub fn parse_content_lines_test() {
 }
 
 pub fn parse_content_lines_2_test() {
+  let expected = [
+    Property("BEGIN", [], "VCALENDAR"),
+    Property("VERSION", [], "2.0"),
+    Property("PRODID", [], "-//ABC Corporation//NONSGML My Product//EN"),
+    Property("BEGIN", [], "VTODO"),
+    Property("DTSTAMP", [], "19980130T134500Z"),
+    Property("SEQUENCE", [], "2"),
+    Property("UID", [], "uid4@example.com"),
+    Property("ORGANIZER", [], "mailto:unclesam@example.com"),
+    Property(
+      "ATTENDEE",
+      [Param("PARTSTAT", ["ACCEPTED"])],
+      "mailto:jqpublic@example.com",
+    ),
+    Property("DUE", [], "19980415T000000"),
+    Property("STATUS", [], "NEEDS-ACTION"),
+    Property("SUMMARY", [], "Submit Income Taxes"),
+    Property("BEGIN", [], "VALARM"),
+    Property("ACTION", [], "AUDIO"),
+    Property("TRIGGER", [], "19980403T120000Z"),
+    Property(
+      "ATTACH",
+      [Param("FMTTYPE", ["audio/basic"])],
+      "http://example.com/pub/audio-files/ssbanner.aud",
+    ),
+    Property("REPEAT", [], "4"),
+    Property("DURATION", [], "PT1H"),
+    Property("END", [], "VALARM"),
+    Property("END", [], "VTODO"),
+    Property("END", [], "VCALENDAR"),
+  ]
   let assert Ok(s) = sf.read("test/case2.ical")
   s
   |> to_content_lines()
   |> list.map(parse_content_line)
-  |> should.equal([
-    Ok(Property("BEGIN", [], "VCALENDAR")),
-    Ok(Property("VERSION", [], "2.0")),
-    Ok(Property("PRODID", [], "-//ABC Corporation//NONSGML My Product//EN")),
-    Ok(Property("BEGIN", [], "VTODO")),
-    Ok(Property("DTSTAMP", [], "19980130T134500Z")),
-    Ok(Property("SEQUENCE", [], "2")),
-    Ok(Property("UID", [], "uid4@example.com")),
-    Ok(Property("ORGANIZER", [], "mailto:unclesam@example.com")),
-    Ok(Property(
-      "ATTENDEE",
-      [Param("PARTSTAT", ["ACCEPTED"])],
-      "mailto:jqpublic@example.com",
-    )),
-    Ok(Property("DUE", [], "19980415T000000")),
-    Ok(Property("STATUS", [], "NEEDS-ACTION")),
-    Ok(Property("SUMMARY", [], "Submit Income Taxes")),
-    Ok(Property("BEGIN", [], "VALARM")),
-    Ok(Property("ACTION", [], "AUDIO")),
-    Ok(Property("TRIGGER", [], "19980403T120000Z")),
-    Ok(Property(
-      "ATTACH",
-      [Param("FMTTYPE", ["audio/basic"])],
-      "http://example.com/pub/audio-files/ssbanner.aud",
-    )),
-    Ok(Property("REPEAT", [], "4")),
-    Ok(Property("DURATION", [], "PT1H")),
-    Ok(Property("END", [], "VALARM")),
-    Ok(Property("END", [], "VTODO")),
-    Ok(Property("END", [], "VCALENDAR")),
-  ])
+  |> list.zip(list.map(expected, Ok(_)))
+  |> list.each(fn(x) {
+    let #(a, b) = x
+    should.equal(a, b)
+  })
 }
 
 pub fn parse_content_lines_3_test() {
-  let assert Ok(s) = sf.read("test/case3.ical")
-  s
-  |> to_content_lines()
-  |> list.map(parse_content_line)
-  |> should.equal([
-    Ok(Property("BEGIN", [], "VCALENDAR")),
-    Ok(Property("PRODID", [], "-//RDU Software//NONSGML HandCal//EN")),
-    Ok(Property("VERSION", [], "2.0")),
-    Ok(Property("BEGIN", [], "VTIMEZONE")),
-    Ok(Property("TZID", [], "America/New_York")),
-    Ok(Property("BEGIN", [], "STANDARD")),
-    Ok(Property("DTSTART", [], "19981025T020000")),
-    Ok(Property("TZOFFSETFROM", [], "-0400")),
-    Ok(Property("TZOFFSETTO", [], "-0500")),
-    Ok(Property("TZNAME", [], "EST")),
-    Ok(Property("END", [], "STANDARD")),
-    Ok(Property("BEGIN", [], "DAYLIGHT")),
-    Ok(Property("DTSTART", [], "19990404T020000")),
-    Ok(Property("TZOFFSETFROM", [], "-0500")),
-    Ok(Property("TZOFFSETTO", [], "-0400")),
-    Ok(Property("TZNAME", [], "EDT")),
-    Ok(Property("END", [], "DAYLIGHT")),
-    Ok(Property("END", [], "VTIMEZONE")),
-    Ok(Property("BEGIN", [], "VEVENT")),
-    Ok(Property("DTSTAMP", [], "19980309T231000Z")),
-    Ok(Property("UID", [], "guid-1.example.com")),
-    Ok(Property("ORGANIZER", [], "mailto:mrbig@example.com")),
-    Ok(Property(
+  let expected = [
+    Property("BEGIN", [], "VCALENDAR"),
+    Property("PRODID", [], "-//RDU Software//NONSGML HandCal//EN"),
+    Property("VERSION", [], "2.0"),
+    Property("BEGIN", [], "VTIMEZONE"),
+    Property("TZID", [], "America/New_York"),
+    Property("BEGIN", [], "STANDARD"),
+    Property("DTSTART", [], "19981025T020000"),
+    Property("TZOFFSETFROM", [], "-0400"),
+    Property("TZOFFSETTO", [], "-0500"),
+    Property("TZNAME", [], "EST"),
+    Property("END", [], "STANDARD"),
+    Property("BEGIN", [], "DAYLIGHT"),
+    Property("DTSTART", [], "19990404T020000"),
+    Property("TZOFFSETFROM", [], "-0500"),
+    Property("TZOFFSETTO", [], "-0400"),
+    Property("TZNAME", [], "EDT"),
+    Property("END", [], "DAYLIGHT"),
+    Property("END", [], "VTIMEZONE"),
+    Property("BEGIN", [], "VEVENT"),
+    Property("DTSTAMP", [], "19980309T231000Z"),
+    Property("UID", [], "guid-1.example.com"),
+    Property("ORGANIZER", [], "mailto:mrbig@example.com"),
+    Property(
       "ATTENDEE",
       [
         Param("RSVP", ["TRUE"]),
@@ -139,40 +140,50 @@ pub fn parse_content_lines_3_test() {
         Param("CUTYPE", ["GROUP"]),
       ],
       "mailto:employee-A@example.com",
-    )),
-    Ok(Property("DESCRIPTION", [], "Project XYZ Review Meeting")),
-    Ok(Property("CATEGORIES", [], "MEETING")),
-    Ok(Property("CLASS", [], "PUBLIC")),
-    Ok(Property("CREATED", [], "19980309T130000Z")),
-    Ok(Property("SUMMARY", [], "XYZ Project Review")),
-    Ok(Property(
+    ),
+    Property("DESCRIPTION", [], "Project XYZ Review Meeting"),
+    Property("CATEGORIES", [], "MEETING"),
+    Property("CLASS", [], "PUBLIC"),
+    Property("CREATED", [], "19980309T130000Z"),
+    Property("SUMMARY", [], "XYZ Project Review"),
+    Property(
       "DTSTART",
       [Param("TZID", ["America/New_York"])],
       "19980312T083000",
-    )),
-    Ok(Property(
-      "DTEND",
-      [Param("TZID", ["America/New_York"])],
-      "19980312T093000",
-    )),
-    Ok(Property("LOCATION", [], "1CP Conference Room 4350")),
-    Ok(Property("END", [], "VEVENT")),
-    Ok(Property("END", [], "VCALENDAR")),
-  ])
+    ),
+    Property("DTEND", [Param("TZID", ["America/New_York"])], "19980312T093000"),
+    Property("LOCATION", [], "1CP Conference Room 4350"),
+    Property("END", [], "VEVENT"),
+    Property("END", [], "VCALENDAR"),
+  ]
+  let assert Ok(s) = sf.read("test/case3.ical")
+  s
+  |> to_content_lines()
+  |> list.map(parse_content_line)
+  |> list.zip(list.map(expected, Ok(_)))
+  |> list.each(fn(x) {
+    let #(a, b) = x
+    should.equal(a, b)
+  })
 }
 
 pub fn parse_content_lines_4_test() {
+  let expected = [
+    Property("BEGIN", [], "VCALENDAR"),
+    Property(
+      "X-TESTSTARCAL",
+      [Param("ABC", ["123", "456", "789"]), Param("DEF", ["QWE", "RTY", "UIO"])],
+      "BASN$!LKJFJAO%U!P#MA<;',\"",
+    ),
+    Property("END", [], "VCALENDAR"),
+  ]
   let assert Ok(s) = sf.read("test/case4.ical")
   s
   |> to_content_lines()
   |> list.map(parse_content_line)
-  |> should.equal([
-    Ok(Property("BEGIN", [], "VCALENDAR")),
-    Ok(Property(
-      "X-TESTSTARCAL",
-      [Param("ABC", ["123", "456", "789"]), Param("DEF", ["QWE", "RTY", "UIO"])],
-      "BASN$!LKJFJAO%U!P#MA<;',\"",
-    )),
-    Ok(Property("END", [], "VCALENDAR")),
-  ])
+  |> list.zip(list.map(expected, Ok(_)))
+  |> list.each(fn(x) {
+    let #(a, b) = x
+    should.equal(a, b)
+  })
 }

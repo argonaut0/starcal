@@ -100,7 +100,7 @@ fn generate_param_string(param: Param) -> String {
     param.values
     |> string.join("\",\"")
     |> string.append("\"")
-  string.append("\"", s)
+  param.name <> "=\"" <> s
 }
 
 // parse_content_line takes a content line and returns the #(name, params, value)
